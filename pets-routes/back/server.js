@@ -39,19 +39,26 @@ app.get('/pets', async (req, res) => {
 
 
 app.post('/pets', async (req, res) => {
-	try {
-		const connection = await client.connect()
-		const data = await connection
-                                .db(dbName)
-                                .collection('pets')
-                                .insertOne(req.body)
-                                await connection.close()
-		return res.status(201).send(data)
-	} catch (err) {
-		console.error('Error adding data:', err)
-		res.status(500).send({ error: 'Internal Server Error', details: err.message })
-	}
-})
+    try {
+        const connection = await client.connect();
+        const { name, type, age } = req.body;
+
+        if (!name || !type || age === undefined) {
+            return res.status(400).send({ error: 'Name, type, and age are required' });
+        }
+
+        const data = await connection
+            .db(dbName)
+            .collection('pets')
+            .insertOne({ name, type, age: Number(age) }); // Convert age to number
+
+        await connection.close();
+        return res.status(201).send(data);
+    } catch (err) {
+        console.error('Error adding data:', err);
+        res.status(500).send({ error: 'Internal Server Error', details: err.message });
+    }
+});
 
 app.get('/pets/:type', async (req, res) => {
 	try {
