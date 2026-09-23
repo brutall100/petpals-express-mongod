@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetPals · Pet shelter list</title>
+    <meta name="description" content="PetPals is a cozy pet shelter list: filter, sort, add, edit and remove pets. Built with Express and MongoDB, with a browser demo mode.">
+    <meta name="theme-color" content="#FFF6E9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1E1712" media="(prefers-color-scheme: dark)">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+    <!-- Sets the theme before the page paints, so it never flashes the wrong colors. -->
+    <script src="js/theme-init.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <!-- Live background: sun glows, paw-print trails and drifting dandelion seeds. -->
+    <div class="bg" id="bg" aria-hidden="true">
+        <div class="bg__glow bg__glow--sun"></div>
+        <div class="bg__glow bg__glow--meadow"></div>
+        <div class="bg__layer" id="bg-paws"></div>
+        <div class="bg__layer" id="bg-seeds"></div>
+    </div>
+
+    <!-- Icon set: every icon below is used with <use href="#icon-..."> -->
+    <svg class="sprite" aria-hidden="true" focusable="false">
+        <symbol id="icon-paw" viewBox="0 0 64 64">
+            <path d="M32 34c-9 0-17 9-17 16 0 5 4 7 8 7 4 0 6-2 9-2s5 2 9 2c4 0 8-2 8-7 0-7-8-16-17-16Z"/>
+            <ellipse cx="13" cy="28" rx="6" ry="8" transform="rotate(-18 13 28)"/>
+            <ellipse cx="25" cy="15" rx="6" ry="8.5" transform="rotate(-6 25 15)"/>
+            <ellipse cx="39" cy="15" rx="6" ry="8.5" transform="rotate(6 39 15)"/>
+            <ellipse cx="51" cy="28" rx="6" ry="8" transform="rotate(18 51 28)"/>
+        </symbol>
+        <symbol id="icon-dog" viewBox="0 0 48 48">
+            <path d="M9 10c4-3 9-2 11 2l-3 16c-6 1-11-4-11-9 0-3 1-7 3-9Zm30 0c-4-3-9-2-11 2l3 16c6 1 11-4 11-9 0-3-1-7-3-9Z"/>
+            <path d="M24 12c8 0 12 6 12 14 0 9-5 15-12 15s-12-6-12-15c0-8 4-14 12-14Z" opacity=".55"/>
+            <circle cx="19.5" cy="24" r="2"/><circle cx="28.5" cy="24" r="2"/>
+            <ellipse cx="24" cy="31" rx="3.5" ry="2.6"/>
+        </symbol>
+        <symbol id="icon-cat" viewBox="0 0 48 48">
+            <path d="M9 6l11 9h8l11-9 1 18c0 10-7 18-16 18S8 34 8 24L9 6Z" opacity=".55"/>
+            <path d="M9 6l9 7.5-8 5ZM39 6l-9 7.5 8 5Z"/>
+            <circle cx="18.5" cy="25" r="2"/><circle cx="29.5" cy="25" r="2"/>
+            <path d="M21.5 30.5h5L24 33Z"/>
+            <path d="M5 30l9 1M5 35l9-2M43 30l-9 1M43 35l-9-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        </symbol>
+        <symbol id="icon-bunny" viewBox="0 0 48 48">
+            <path d="M15 4c3-1 5 3 5 9v8h-6c-2-6-3-16 1-17Zm18 0c-3-1-5 3-5 9v8h6c2-6 3-16-1-17Z"/>
+            <path d="M24 19c8 0 12 6 12 12 0 7-5 12-12 12s-12-5-12-12c0-6 4-12 12-12Z" opacity=".55"/>
+            <circle cx="19.5" cy="29" r="2"/><circle cx="28.5" cy="29" r="2"/>
+            <path d="M22 34h4l-2 2Z"/>
+        </symbol>
+        <symbol id="icon-sun" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="4.5"/>
+            <path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="icon-moon" viewBox="0 0 24 24">
+            <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"/>
+        </symbol>
+        <symbol id="icon-edit" viewBox="0 0 24 24">
+            <path d="M4 20h4L19 9l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-trash" viewBox="0 0 24 24">
+            <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-code" viewBox="0 0 24 24">
+            <path d="M8 7l-5 5 5 5M16 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+    </svg>
+
+    <header class="topbar">
+        <a class="logo" href="#main" aria-label="PetPals home">
+            <svg class="logo__paw" aria-hidden="true"><use href="#icon-paw"/></svg>
+            <span>Pet<b>Pals</b></span>
+        </a>
+        <div class="topbar__right">
+            <span class="mode-badge" id="mode-badge" data-mode="loading">Connecting…</span>
+            <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch to dark theme">
+                <svg class="icon-btn__sun" aria-hidden="true"><use href="#icon-sun"/></svg>
+                <svg class="icon-btn__moon" aria-hidden="true"><use href="#icon-moon"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <main id="main" tabindex="-1">
+        <section class="hero reveal" aria-labelledby="hero-title">
+            <p class="hero__kicker">Sunny Meadow Shelter</p>
+            <h1 id="hero-title">Every paw deserves <span class="hero__accent">a&nbsp;cozy&nbsp;home</span>.</h1>
+            <p class="hero__lead">
+                Meet our residents. Filter by species, sort by age, and add new friends as they arrive.
+            </p>
+            <button class="btn btn--primary" id="add-pet-btn" type="button">
+                <svg class="btn__paw" aria-hidden="true"><use href="#icon-paw"/></svg>
+                Add a pet
+            </button>
+        </section>
+
+        <section class="stats reveal" aria-label="Shelter statistics">
+            <div class="stat"><span class="stat__num" data-stat="all">0</span><span class="stat__label">Residents</span></div>
+            <div class="stat stat--dog"><span class="stat__num" data-stat="dog">0</span><span class="stat__label">Dogs</span></div>
+            <div class="stat stat--cat"><span class="stat__num" data-stat="cat">0</span><span class="stat__label">Cats</span></div>
+            <div class="stat stat--bunny"><span class="stat__num" data-stat="bunny">0</span><span class="stat__label">Bunnies</span></div>
+        </section>
+
+        <section class="toolbar reveal" aria-label="Filter and sort pets">
+            <div class="field field--search">
+                <label for="search">Search by name</label>
+                <input id="search" type="search" placeholder="e.g. Luna" autocomplete="off">
+            </div>
+
+            <fieldset class="chips">
+                <legend>Show</legend>
+                <button class="chip" type="button" data-type="dog" aria-pressed="true">
+                    <svg aria-hidden="true"><use href="#icon-dog"/></svg>Dogs
+                </button>
+                <button class="chip" type="button" data-type="cat" aria-pressed="true">
+                    <svg aria-hidden="true"><use href="#icon-cat"/></svg>Cats
+                </button>
+                <button class="chip" type="button" data-type="bunny" aria-pressed="true">
+                    <svg aria-hidden="true"><use href="#icon-bunny"/></svg>Bunnies
+                </button>
+            </fieldset>
+
+            <div class="field">
+                <label for="sort">Sort by</label>
+                <select id="sort">
+                    <option value="age_asc">Youngest first</option>
+                    <option value="age_desc">Oldest first</option>
+                    <option value="name">Name A–Z</option>
+                    <option value="newest">Newest arrivals</option>
+                </select>
+            </div>
+        </section>
+
+        <section aria-labelledby="residents-title">
+            <h2 class="visually-hidden" id="residents-title">Residents</h2>
+            <p class="status" id="status" role="status"></p>
+            <ul class="pet-grid" id="pet-grid"></ul>
+            <div class="empty" id="empty" hidden>
+                <svg aria-hidden="true"><use href="#icon-paw"/></svg>
+                <p>No pets match these filters.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>PetPals · <a href="https://github.com/brutall100/petpals-express-mongodb">
+            <svg aria-hidden="true"><use href="#icon-code"/></svg>Source code</a>
+            · MIT © 2026 brutall100</p>
+        <button class="link-btn" id="reset-demo" type="button" hidden>Reset demo data</button>
+    </footer>
+
+    <!-- Add / edit form -->
+    <dialog class="dialog" id="pet-dialog" aria-labelledby="pet-dialog-title">
+        <form class="pet-form" id="pet-form" method="dialog" novalidate>
+            <h2 id="pet-dialog-title">Add a pet</h2>
+
+            <div class="field">
+                <label for="pet-name">Name</label>
+                <input id="pet-name" name="name" type="text" maxlength="30" required autocomplete="off">
+            </div>
+
+            <fieldset class="type-picker">
+                <legend>Species</legend>
+                <label><input type="radio" name="type" value="dog" checked><span><svg aria-hidden="true"><use href="#icon-dog"/></svg>Dog</span></label>
+                <label><input type="radio" name="type" value="cat"><span><svg aria-hidden="true"><use href="#icon-cat"/></svg>Cat</span></label>
+                <label><input type="radio" name="type" value="bunny"><span><svg aria-hidden="true"><use href="#icon-bunny"/></svg>Bunny</span></label>
+            </fieldset>
+
+            <div class="field">
+                <label for="pet-age">Age (years)</label>
+                <input id="pet-age" name="age" type="number" min="0" max="30" step="1" inputmode="numeric" required>
+            </div>
+
+            <p class="form-error" id="form-error" role="alert"></p>
+
+            <div class="dialog__actions">
+                <button class="btn btn--ghost" type="button" data-close>Cancel</button>
+                <button class="btn btn--primary" type="submit">
+                    <svg class="btn__paw" aria-hidden="true"><use href="#icon-paw"/></svg>
+                    <span id="pet-submit-label">Add pet</span>
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Delete confirmation -->
+    <dialog class="dialog dialog--small" id="delete-dialog" aria-labelledby="delete-title">
+        <h2 id="delete-title">Say goodbye to <span id="delete-name"></span>?</h2>
+        <p>This pet will be removed from the list.</p>
+        <div class="dialog__actions">
+            <button class="btn btn--ghost" type="button" data-close>Keep</button>
+            <button class="btn btn--danger" type="button" id="delete-confirm">Remove</button>
+        </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
