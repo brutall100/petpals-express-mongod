@@ -1,0 +1,10 @@
+[
+    { "name": "Biscuit", "type": "dog", "age": 3 },
+    { "name": "Luna", "type": "cat", "age": 5 },
+    { "name": "Clover", "type": "bunny", "age": 1 },
+    { "name": "Rocky", "type": "dog", "age": 9 },
+    { "name": "Mochi", "type": "cat", "age": 2 },
+    { "name": "Pepper", "type": "dog", "age": 6 },
+    { "name": "Hazel", "type": "bunny", "age": 4 },
+    { "name": "Ziggy", "type": "cat", "age": 11 }
+]

@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Secrets: copy server/.env.example to server/.env instead
+.env
+.env.*
+!.env.example
+
+# System and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+*.log
